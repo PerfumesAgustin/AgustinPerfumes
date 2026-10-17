@@ -72,7 +72,7 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
   async function logout(){await createClient().auth.signOut();window.location.href="/admin/login";}
 
   return <main className="admin-shell">
-    <div className="admin-head"><div className="brand"><span className="brand-mark"><SprayCan size={20}/></span><div>PERFUME <span>STOCK</span><div style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{email}</div></div></div><div style={{display:"flex",gap:8}}><a className="btn ghost" href="/">Ver catálogo</a><button className="btn secondary" onClick={logout}><LogOut size={16}/></button></div></div>
+    <div className="admin-head"><div className="brand"><span className="brand-mark"><SprayCan size={20}/></span><div>DISTRIBUIDORA <span>AYK STOCK</span><div style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{email}</div></div></div><div style={{display:"flex",gap:8}}><a className="btn ghost" href="/">Ver catálogo</a><button className="btn secondary" onClick={logout}><LogOut size={16}/></button></div></div>
     <div className="stats-grid"><Stat value={products.length} label="productos"/><Stat value={totalStock} label="unidades en stock"/><Stat value={lowStock} label="alertas de stock bajo"/><Stat value={pending} label="pedidos pendientes"/></div>
     {message&&<div className="notice" style={{marginBottom:12}}>{message}</div>}
     <div className="tabs"><button className={`btn ${tab!=="inventory"?"secondary":""}`} onClick={()=>setTab("inventory")}>Inventario</button><button className={`btn ${tab!=="orders"?"secondary":""}`} onClick={()=>setTab("orders")}>Pedidos ({pending})</button><button className={`btn ${tab!=="history"?"secondary":""}`} onClick={()=>setTab("history")}>Movimientos</button></div>

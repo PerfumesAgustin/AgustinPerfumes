@@ -1,5 +1,5 @@
 export const BUSINESS_WHATSAPP = "5491167463767";
-export const BUSINESS_NAME = "Perfume Stock · Agustín";
+export const BUSINESS_NAME = "Distribuidora AYK Stock";
 
 export function hasSupabaseConfig() {
   return Boolean(

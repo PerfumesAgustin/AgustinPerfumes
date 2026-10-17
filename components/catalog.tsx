@@ -87,7 +87,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
   return <>
     <header className="topbar"><div className="shell topbar-inner">
-      <a className="brand" href="#inicio"><span className="brand-mark"><SprayCan size={21}/></span><div>PERFUME <span>STOCK</span></div></a>
+      <a className="brand" href="#inicio"><span className="brand-mark"><SprayCan size={21}/></span><div>DISTRIBUIDORA <span>AYK STOCK</span></div></a>
       <a className="btn secondary" href="/admin">Administración</a>
     </div></header>
     <main id="inicio" className="shell">
