@@ -88,7 +88,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
   return <>
     <header className="topbar"><div className="shell topbar-inner">
-      <a className="brand" href="#inicio"><span className="brand-mark"><SprayCan size={21}/></span><div>DISTRIBUIDORA <span>AYK STOCK</span></div></a>
+      <a className="brand" href="#inicio" aria-label="Distribuidora AYK Stock"><Image className="brand-logo" src="/ayk-logo-header.webp" alt="Distribuidora AYK Stock" width={900} height={320} sizes="(max-width: 680px) 178px, 205px" loading="eager" fetchPriority="high"/></a>
       <a className="btn secondary" href="/admin">Administración</a>
     </div></header>
     <main id="inicio" className="shell">
