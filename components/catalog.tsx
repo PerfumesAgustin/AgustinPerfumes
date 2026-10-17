@@ -127,6 +127,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
 function StockBadge({ product }: { product: Product }) {
   if (product.stock === 0) return <span className="badge none">Agotado</span>;
+  if (product.stock === 1) return <span className="badge low">Última unidad 🔥</span>;
   if (product.stock <= product.min_stock) return <span className="badge low">Últimas {product.stock}</span>;
   return <span className="badge ok">{product.stock} disponibles</span>;
 }
