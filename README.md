@@ -1,13 +1,14 @@
-# Perfume Stock · Agustín
+# Distribuidora AYK Stock
 
 Catálogo mayorista y panel de inventario construido con Next.js 16 y Supabase.
 
 ## Estado de la entrega
 
-- 204 registros de producto preservados del inventario original.
-- 900 unidades totales preservadas, sin inventar ni fusionar cantidades.
-- 151 registros vinculados a fotografías revisadas.
-- 53 registros quedan con una tarjeta neutra `Foto pendiente` para revisión manual.
+- 145 productos activos y 884 unidades disponibles en el catálogo público.
+- Todas las fragancias activas tienen una fotografía cargada.
+- Los dos productos archivados quedan separados de los totales activos del panel.
+- Los nombres visibles se normalizan sin fusionar variantes diferentes.
+- La inspiración se muestra solamente cuando la asociación de la fotografía está verificada.
 - Carrito temporal en el navegador y pedidos definitivos guardados en Supabase.
 - Confirmación de pedidos con descuento atómico de stock y cancelación con reposición.
 - Panel protegido para productos, fotos, existencias, pedidos, movimientos y CSV.
@@ -32,12 +33,12 @@ Abrí `http://localhost:3000`. Sin variables de entorno se muestra el catálogo 
 ## Verificación
 
 ```bash
-npm run prepare:data
-npm run typecheck
-npm run build
+npm run check
 ```
 
 El script de datos usa solamente vinculaciones explícitas de imágenes. No realiza coincidencias aproximadas.
+
+Desde el panel administrativo se puede descargar un respaldo JSON completo de productos, pedidos, movimientos y configuración.
 
 ## Publicación
 

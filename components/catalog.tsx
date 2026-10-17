@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SprayCan, Search, ShoppingBag, X } from "lucide-react";
+import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { BUSINESS_WHATSAPP } from "@/lib/config";
 
@@ -99,8 +100,8 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       </div>
       <section className="product-grid">
         {visible.map((product) => <article className="product-card" key={product.id}>
-          {product.photo_url ? <button className="product-image-button" type="button" onClick={()=>setZoomedProduct(product)} aria-label={`Ampliar imagen de ${product.name}`}><img className="product-image" src={product.photo_url} alt={product.name}/><span>Ver imagen</span></button> : <div className="placeholder"><div><SprayCan size={36}/><strong>Foto pendiente</strong></div></div>}
-          <div className="card-body"><div className="card-name">{product.name}</div><div className="meta"><span>{product.gender}</span><StockBadge product={product}/></div>
+          {product.photo_url ? <button className="product-image-button" type="button" onClick={()=>setZoomedProduct(product)} aria-label={`Ampliar imagen de ${product.name}`}><Image className="product-image" src={product.photo_url} alt={product.name} width={640} height={704} sizes="(max-width: 680px) 50vw, (max-width: 980px) 33vw, 25vw"/><span>{product.inspired_by ? "Ver detalles" : "Ver imagen"}</span></button> : <div className="placeholder"><div><SprayCan size={36}/><strong>Foto pendiente</strong></div></div>}
+          <div className="card-body"><div className="card-name">{product.name}</div>{product.inspired_by&&<div className="inspiration">Inspirado en {product.inspired_by}</div>}<div className="meta"><span>{product.gender}</span><StockBadge product={product}/></div>
           <div className="qty"><button aria-label="Restar" onClick={()=>setQuantity(product,(cart[product.id]??0)-1)} disabled={!cart[product.id]}>−</button><input aria-label={`Cantidad de ${product.name}`} type="number" min={0} max={product.stock} value={cart[product.id]??0} onChange={(event)=>setQuantity(product,Number(event.target.value))}/><button aria-label="Sumar" onClick={()=>setQuantity(product,(cart[product.id]??0)+1)} disabled={(cart[product.id]??0)>=product.stock}>+</button></div></div>
         </article>)}
         {!visible.length && <div className="empty">No encontramos perfumes con esos filtros.</div>}
@@ -110,15 +111,15 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
     {cartOpen && <div className="overlay" role="dialog" aria-modal="true"><aside className="drawer">
       <div className="drawer-head"><div><div className="eyebrow">Solicitud mayorista</div><h2>Tu pedido · {total} unidades</h2></div><button className="btn ghost" aria-label="Cerrar" onClick={()=>setCartOpen(false)}><X size={18}/></button></div>
       {!lines.length ? <div className="empty">Todavía no agregaste productos.</div> : <>
-        {lines.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<img src={line.photo_url} alt=""/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button onClick={()=>setQuantity(line,line.quantity-1)}>−</button><b style={{textAlign:"center"}}>{line.quantity}</b><button onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}>+</button></div></div>)}
+        {lines.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<Image src={line.photo_url} alt="" width={54} height={62} sizes="54px"/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button onClick={()=>setQuantity(line,line.quantity-1)}>−</button><b style={{textAlign:"center"}}>{line.quantity}</b><button onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}>+</button></div></div>)}
         <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio"/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto"/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)"/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Guardar pedido y abrir WhatsApp"}</button>{message&&<div className={message.startsWith("Pedido")?"success":"error"}>{message}</div>}</form>
       </>}
     </aside></div>}
     {zoomedProduct?.photo_url && <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={`Imagen ampliada de ${zoomedProduct.name}`} onClick={()=>setZoomedProduct(null)}>
       <button className="lightbox-close" type="button" aria-label="Cerrar imagen" onClick={()=>setZoomedProduct(null)}><X size={22}/></button>
       <figure onClick={(event)=>event.stopPropagation()}>
-        <img src={zoomedProduct.photo_url} alt={zoomedProduct.name}/>
-        <figcaption>{zoomedProduct.name}</figcaption>
+        <Image src={zoomedProduct.photo_url} alt={zoomedProduct.name} width={1200} height={1320} sizes="92vw" priority/>
+        <figcaption><strong>{zoomedProduct.name}</strong>{zoomedProduct.inspired_by&&<span>Inspirado en {zoomedProduct.inspired_by}</span>}</figcaption>
       </figure>
     </div>}
   </>;

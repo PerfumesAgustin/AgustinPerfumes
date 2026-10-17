@@ -3,6 +3,7 @@ import { AdminDashboard } from "@/components/admin-dashboard";
 import { hasSupabaseConfig } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Order, Product, StockMovement } from "@/lib/types";
+import { canonicalProductName, enrichProduct } from "@/lib/catalog-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -20,5 +21,10 @@ export default async function AdminPage() {
     supabase.from("stock_movements").select("*,products(name)").order("created_at", { ascending:false }).limit(200),
   ]);
   if (productsResult.error || ordersResult.error || movementsResult.error) throw new Error("No se pudo cargar el panel administrativo.");
-  return <AdminDashboard products={productsResult.data as Product[]} orders={ordersResult.data as Order[]} movements={movementsResult.data as StockMovement[]} email={user.email ?? "Administrador"}/>;
+  const products = (productsResult.data as Product[]).map(enrichProduct);
+  const orders = (ordersResult.data as Order[]).map((order) => ({
+    ...order,
+    order_items: order.order_items?.map((item) => ({ ...item, product_name: canonicalProductName(item.product_name) })),
+  }));
+  return <AdminDashboard products={products} orders={orders} movements={movementsResult.data as StockMovement[]} email={user.email ?? "Administrador"}/>;
 }

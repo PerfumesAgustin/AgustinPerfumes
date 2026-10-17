@@ -7,6 +7,7 @@ export type Product = {
   stock: number;
   min_stock: number;
   photo_url: string | null;
+  inspired_by?: string | null;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
