@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SprayCan, Search, ShoppingBag, X } from "lucide-react";
 import type { Product } from "@/lib/types";
 import { BUSINESS_WHATSAPP } from "@/lib/config";
@@ -15,6 +15,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [zoomedProduct, setZoomedProduct] = useState<Product | null>(null);
 
   const visible = useMemo(() => initialProducts.filter((product) => {
     const matchesText = product.name.toLocaleLowerCase("es").includes(query.toLocaleLowerCase("es"));
@@ -25,7 +26,19 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
   const lines = initialProducts.filter((product) => (cart[product.id] ?? 0) > 0).map((product) => ({ ...product, quantity: cart[product.id] }));
   const total = lines.reduce((sum, line) => sum + line.quantity, 0);
-  const stockTotal = initialProducts.reduce((sum, product) => sum + product.stock, 0);
+
+  useEffect(() => {
+    if (!zoomedProduct) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setZoomedProduct(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [zoomedProduct]);
 
   function setQuantity(product: Product, value: number) {
     const next = Math.min(product.stock, Math.max(0, Math.floor(value || 0)));
@@ -78,10 +91,6 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       <a className="btn secondary" href="/admin">Administración</a>
     </div></header>
     <main id="inicio" className="shell">
-      <section className="hero">
-        <div><div className="eyebrow">Catálogo mayorista · stock en tiempo real</div><h1>Elegí perfumes.<br/>Armá tu pedido.</h1><p>Consultá disponibilidad exacta y enviá tu solicitud directamente a Agustín. Sin precios publicados.</p></div>
-        <div className="hero-stat"><strong>{stockTotal}</strong><span>unidades disponibles en {initialProducts.length} modelos</span></div>
-      </section>
       {!configured && <div className="notice">Vista local preparada: el catálogo usa el inventario inicial. Los pedidos se habilitan cuando conectemos tu proyecto de Supabase.</div>}
       <div className="toolbar">
         <label style={{position:"relative"}}><Search size={18} style={{position:"absolute",left:13,top:13,color:"#9d8da8"}}/><input className="field" style={{paddingLeft:42}} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Buscar perfume..."/></label>
@@ -90,7 +99,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       </div>
       <section className="product-grid">
         {visible.map((product) => <article className="product-card" key={product.id}>
-          {product.photo_url ? <img className="product-image" src={product.photo_url} alt={product.name}/> : <div className="placeholder"><div><SprayCan size={36}/><strong>Foto pendiente</strong></div></div>}
+          {product.photo_url ? <button className="product-image-button" type="button" onClick={()=>setZoomedProduct(product)} aria-label={`Ampliar imagen de ${product.name}`}><img className="product-image" src={product.photo_url} alt={product.name}/><span>Ver imagen</span></button> : <div className="placeholder"><div><SprayCan size={36}/><strong>Foto pendiente</strong></div></div>}
           <div className="card-body"><div className="card-name">{product.name}</div><div className="meta"><span>{product.gender}</span><StockBadge product={product}/></div>
           <div className="qty"><button aria-label="Restar" onClick={()=>setQuantity(product,(cart[product.id]??0)-1)} disabled={!cart[product.id]}>−</button><input aria-label={`Cantidad de ${product.name}`} type="number" min={0} max={product.stock} value={cart[product.id]??0} onChange={(event)=>setQuantity(product,Number(event.target.value))}/><button aria-label="Sumar" onClick={()=>setQuantity(product,(cart[product.id]??0)+1)} disabled={(cart[product.id]??0)>=product.stock}>+</button></div></div>
         </article>)}
@@ -105,6 +114,13 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
         <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio"/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto"/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)"/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Guardar pedido y abrir WhatsApp"}</button>{message&&<div className={message.startsWith("Pedido")?"success":"error"}>{message}</div>}</form>
       </>}
     </aside></div>}
+    {zoomedProduct?.photo_url && <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={`Imagen ampliada de ${zoomedProduct.name}`} onClick={()=>setZoomedProduct(null)}>
+      <button className="lightbox-close" type="button" aria-label="Cerrar imagen" onClick={()=>setZoomedProduct(null)}><X size={22}/></button>
+      <figure onClick={(event)=>event.stopPropagation()}>
+        <img src={zoomedProduct.photo_url} alt={zoomedProduct.name}/>
+        <figcaption>{zoomedProduct.name}</figcaption>
+      </figure>
+    </div>}
   </>;
 }
 
