@@ -15,8 +15,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Distribuidora AYK Stock · Catálogo mayorista",
-  description: "Catálogo mayorista de perfumes de Distribuidora AYK Stock.",
+  title: "AYK · Catálogo mayorista",
+  description: "Catálogo mayorista de perfumes AYK.",
 };
 
 export const viewport: Viewport = {
