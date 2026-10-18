@@ -88,7 +88,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
   return <>
     <header className="topbar"><div className="shell topbar-inner">
-      <a className="brand" href="#inicio" aria-label="AYK"><Image className="brand-logo" src="/ayk-logo-only.webp" alt="AYK" width={320} height={320} sizes="(max-width: 680px) 52px, 62px" loading="eager" fetchPriority="high"/></a>
+      <a className="brand" href="#inicio" aria-label="AYK · Extractos de fábrica"><Image className="brand-logo" src="/ayk-logo-only.webp" alt="AYK" width={320} height={320} sizes="(max-width: 680px) 52px, 62px" loading="eager" fetchPriority="high"/><span className="brand-name">Extractos de fábrica</span></a>
       <a className="btn secondary" href="/admin">Administración</a>
     </div></header>
     <main id="inicio" className="shell">
