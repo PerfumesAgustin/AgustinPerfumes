@@ -92,13 +92,27 @@ export function verifiedInspiration(photoUrl: string | null, productName?: strin
   return `${fragrance} — ${brand}`;
 }
 
+function tubitoPhotoUrl(name: string) {
+  const slug = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `/tubitos-arabes/${slug}.jpeg`;
+}
+
 export function enrichProduct(product: Product): Product {
   const name = canonicalProductName(product.name);
+  const catalogSection = product.catalog_section ?? "extractos";
+  const photoUrl = product.photo_url ?? (catalogSection === "tubitos_arabes" ? tubitoPhotoUrl(name) : null);
   return {
     ...product,
     name,
-    catalog_section: product.catalog_section ?? "extractos",
-    inspired_by: verifiedInspiration(product.photo_url, name),
+    photo_url: photoUrl,
+    catalog_section: catalogSection,
+    inspired_by: verifiedInspiration(photoUrl, name),
   };
 }
 

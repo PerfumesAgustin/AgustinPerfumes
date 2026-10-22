@@ -57,4 +57,10 @@ describe("enrichProduct", () => {
       inspired_by: "Baccarat Rouge 540 — Maison Francis Kurkdjian",
     });
   });
+
+  it("asigna la foto local revisada a los tubitos sin foto cargada", () => {
+    expect(enrichProduct(product({ name: "Bade'e Al Oud Oud for Glory", catalog_section: "tubitos_arabes" }))).toMatchObject({
+      photo_url: "/tubitos-arabes/badee-al-oud-oud-for-glory.jpeg",
+    });
+  });
 });
