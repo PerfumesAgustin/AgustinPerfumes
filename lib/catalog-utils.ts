@@ -93,7 +93,8 @@ export function verifiedInspiration(photoUrl: string | null, productName?: strin
 }
 
 function tubitoPhotoUrl(name: string) {
-  const slug = name
+  const assetName = name.replace(/^Odrssay\b/, "Odyssey");
+  const slug = assetName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/['’]/g, "")
@@ -104,8 +105,11 @@ function tubitoPhotoUrl(name: string) {
 }
 
 export function enrichProduct(product: Product): Product {
-  const name = canonicalProductName(product.name);
   const catalogSection = product.catalog_section ?? "extractos";
+  const canonicalName = canonicalProductName(product.name);
+  const name = catalogSection === "tubitos_arabes"
+    ? canonicalName.replace(/^Odyssey\b/, "Odrssay")
+    : canonicalName;
   const photoUrl = product.photo_url ?? (catalogSection === "tubitos_arabes" ? tubitoPhotoUrl(name) : null);
   return {
     ...product,

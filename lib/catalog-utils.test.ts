@@ -63,4 +63,11 @@ describe("enrichProduct", () => {
       photo_url: "/tubitos-arabes/badee-al-oud-oud-for-glory.jpeg",
     });
   });
+
+  it("muestra Odrssay en los tubitos y conserva la foto ya publicada", () => {
+    expect(enrichProduct(product({ name: "Odyssey Black Forest", catalog_section: "tubitos_arabes" }))).toMatchObject({
+      name: "Odrssay Black Forest",
+      photo_url: "/tubitos-arabes/odyssey-black-forest.jpeg",
+    });
+  });
 });
