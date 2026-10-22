@@ -9,6 +9,7 @@ const schema = z.object({
   is_active: z.boolean().optional(),
   stock: z.number().int().min(0).optional(),
   delta: z.number().int().refine((value) => value !== 0).optional(),
+  catalog_section: z.enum(["extractos", "tubitos_arabes"]).optional(),
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {

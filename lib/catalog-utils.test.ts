@@ -10,6 +10,7 @@ function product(overrides: Partial<Product>): Product {
     stock: 5,
     min_stock: 3,
     photo_url: null,
+    catalog_section: "extractos",
     is_active: true,
     ...overrides,
   };

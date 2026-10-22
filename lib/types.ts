@@ -1,4 +1,5 @@
 export type Gender = "Masculino" | "Femenino" | "Unisex" | "Sin clasificar";
+export type CatalogSection = "extractos" | "tubitos_arabes";
 
 export type Product = {
   id: number;
@@ -7,6 +8,7 @@ export type Product = {
   stock: number;
   min_stock: number;
   photo_url: string | null;
+  catalog_section: CatalogSection;
   inspired_by?: string | null;
   is_active: boolean;
   created_at?: string;

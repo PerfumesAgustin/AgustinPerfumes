@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { CircleCheck, Flame, Minus, Plus, Search, ShoppingBag, SprayCan, X, Zap } from "lucide-react";
 import Image from "next/image";
-import type { Product } from "@/lib/types";
+import type { CatalogSection, Product } from "@/lib/types";
 import { BUSINESS_WHATSAPP } from "@/lib/config";
 
 type Cart = Record<number, number>;
 
 export function Catalog({ initialProducts, configured }: { initialProducts: Product[]; configured: boolean }) {
   const [query, setQuery] = useState("");
+  const [catalogSection, setCatalogSection] = useState<CatalogSection>("extractos");
   const [gender, setGender] = useState("");
   const [availability, setAvailability] = useState("");
   const [cart, setCart] = useState<Cart>({});
@@ -18,12 +19,21 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
   const [message, setMessage] = useState("");
   const [zoomedProduct, setZoomedProduct] = useState<Product | null>(null);
 
-  const visible = useMemo(() => initialProducts.filter((product) => {
+  const sectionProducts = useMemo(() => initialProducts
+    .filter((product) => product.catalog_section === catalogSection)
+    .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })), [initialProducts, catalogSection]);
+
+  const visible = useMemo(() => sectionProducts.filter((product) => {
     const matchesText = product.name.toLocaleLowerCase("es").includes(query.toLocaleLowerCase("es"));
     const matchesGender = !gender || product.gender === gender;
     const matchesAvailability = !availability || (availability === "available" ? product.stock > 0 : product.stock === 0);
     return matchesText && matchesGender && matchesAvailability;
-  }), [initialProducts, query, gender, availability]);
+  }), [sectionProducts, query, gender, availability]);
+
+  const sectionCounts = useMemo(() => ({
+    extractos: initialProducts.filter((product) => product.catalog_section === "extractos").length,
+    tubitos_arabes: initialProducts.filter((product) => product.catalog_section === "tubitos_arabes").length,
+  }), [initialProducts]);
 
   const lines = initialProducts.filter((product) => (cart[product.id] ?? 0) > 0).map((product) => ({ ...product, quantity: cart[product.id] }));
   const total = lines.reduce((sum, line) => sum + line.quantity, 0);
@@ -48,6 +58,13 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       if (next) updated[product.id] = next; else delete updated[product.id];
       return updated;
     });
+  }
+
+  function selectCatalogSection(section: CatalogSection) {
+    setCatalogSection(section);
+    setQuery("");
+    setGender("");
+    setAvailability("");
   }
 
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
@@ -93,6 +110,10 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
     </div></header>
     <main id="inicio" className="shell">
       {!configured && <div className="notice">Vista local preparada: el catálogo usa el inventario inicial. Los pedidos se habilitan cuando conectemos tu proyecto de Supabase.</div>}
+      <nav className="catalog-switcher" aria-label="Secciones del catálogo">
+        <button className={catalogSection === "extractos" ? "active" : ""} type="button" aria-pressed={catalogSection === "extractos"} onClick={()=>selectCatalogSection("extractos")}><span>Extractos de fábrica</span><b>{sectionCounts.extractos}</b></button>
+        <button className={catalogSection === "tubitos_arabes" ? "active" : ""} type="button" aria-pressed={catalogSection === "tubitos_arabes"} onClick={()=>selectCatalogSection("tubitos_arabes")}><span>Tubitos Árabes</span><b>{sectionCounts.tubitos_arabes}</b></button>
+      </nav>
       <div className="toolbar">
         <label style={{position:"relative"}}><Search size={18} style={{position:"absolute",left:13,top:13,color:"#9d8da8"}}/><input className="field" style={{paddingLeft:42}} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Buscar perfume..."/></label>
         <select className="select" value={gender} onChange={(event)=>setGender(event.target.value)}><option value="">Todos los géneros</option><option>Masculino</option><option>Femenino</option><option>Unisex</option><option>Sin clasificar</option></select>
@@ -104,7 +125,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
           <div className="card-body"><div className="card-name">{product.name}</div>{product.inspired_by&&<div className="inspiration">Inspirado en {product.inspired_by}</div>}<div className="meta"><span>{product.gender}</span><StockBadge product={product}/></div>
           <div className="qty"><button aria-label={`Restar ${product.name}`} onClick={()=>setQuantity(product,(cart[product.id]??0)-1)} disabled={!cart[product.id]}><Minus size={16}/></button><input aria-label={`Cantidad de ${product.name}`} type="number" min={0} max={product.stock} value={cart[product.id]??0} onChange={(event)=>setQuantity(product,Number(event.target.value))}/><button aria-label={`Sumar ${product.name}`} onClick={()=>setQuantity(product,(cart[product.id]??0)+1)} disabled={(cart[product.id]??0)>=product.stock}><Plus size={16}/></button></div></div>
         </article>)}
-        {!visible.length && <div className="empty">No encontramos perfumes con esos filtros.</div>}
+        {!visible.length && <div className="empty">No encontramos productos en {catalogSection === "tubitos_arabes" ? "Tubitos Árabes" : "Extractos de fábrica"} con esos filtros.</div>}
       </section>
     </main>
     <button className="btn cart-fab" onClick={()=>setCartOpen(true)}><ShoppingBag size={19}/> Ver pedido <b>{total}</b></button>

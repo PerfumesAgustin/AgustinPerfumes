@@ -97,6 +97,7 @@ export function enrichProduct(product: Product): Product {
   return {
     ...product,
     name,
+    catalog_section: product.catalog_section ?? "extractos",
     inspired_by: verifiedInspiration(product.photo_url, name),
   };
 }

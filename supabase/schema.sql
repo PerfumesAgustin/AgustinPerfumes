@@ -23,6 +23,7 @@ create table if not exists public.products (
   stock integer not null default 0 check (stock >= 0),
   min_stock integer not null default 3 check (min_stock >= 0),
   photo_url text,
+  catalog_section text not null default 'extractos' check (catalog_section in ('extractos', 'tubitos_arabes')),
   is_active boolean not null default true,
   data_status text not null default 'revisar' check (data_status in ('foto_validada', 'revisar')),
   created_at timestamptz not null default now(),
@@ -77,6 +78,7 @@ create table if not exists public.business_settings (
 insert into public.business_settings (id) values (true) on conflict (id) do nothing;
 
 create index if not exists products_active_name_idx on public.products (is_active, name);
+create index if not exists products_section_active_name_idx on public.products (catalog_section, is_active, name);
 create index if not exists orders_status_created_idx on public.orders (status, created_at desc);
 create index if not exists order_items_order_idx on public.order_items (order_id);
 create index if not exists stock_movements_product_created_idx on public.stock_movements (product_id, created_at desc);

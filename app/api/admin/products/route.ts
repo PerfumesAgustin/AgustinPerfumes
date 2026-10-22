@@ -7,6 +7,7 @@ const schema = z.object({
   gender: z.enum(["Masculino", "Femenino", "Unisex", "Sin clasificar"]),
   stock: z.number().int().min(0).default(0),
   min_stock: z.number().int().min(0).default(3),
+  catalog_section: z.enum(["extractos", "tubitos_arabes"]).default("extractos"),
 });
 
 export async function POST(request: Request) {
