@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { CatalogSection, Product } from "@/lib/types";
 import { ORDER_RECIPIENTS } from "@/lib/config";
 import { formatOrderLabel } from "@/lib/order-number";
+import { formatProductOrderName, getProductKindLabel } from "@/lib/product-order-label";
 
 type Cart = Record<number, number>;
 type CompletedOrder = { orderNumber: string; whatsappText: string };
@@ -92,7 +93,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
         `Revendedor: ${payload.reseller_name}`,
         `Teléfono: ${payload.phone}`,
         "",
-        ...lines.map((line) => `- ${line.name}: ${line.quantity} unidades`),
+        ...lines.map((line) => `- ${formatProductOrderName(line)}: ${line.quantity} unidades`),
         "",
         `Total: ${total} unidades`,
         `Observaciones: ${payload.notes || "Sin observaciones"}`,
@@ -146,7 +147,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       </div> : <>
       <button className="btn secondary continue-shopping" type="button" onClick={()=>setCartOpen(false)}><ArrowLeft size={17}/> Seguir pidiendo</button>
       {!lines.length ? <div className="empty">Todavía no agregaste productos.</div> : <>
-        {lines.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<Image src={line.photo_url} alt="" width={54} height={62} sizes="54px"/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button aria-label={`Restar ${line.name}`} onClick={()=>setQuantity(line,line.quantity-1)}><Minus size={14}/></button><b style={{textAlign:"center"}}>{line.quantity}</b><button aria-label={`Sumar ${line.name}`} onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}><Plus size={14}/></button></div></div>)}
+        {lines.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<Image src={line.photo_url} alt="" width={54} height={62} sizes="54px"/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><span className="order-item-kind">{getProductKindLabel(line.catalog_section)}</span><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button aria-label={`Restar ${line.name}`} onClick={()=>setQuantity(line,line.quantity-1)}><Minus size={14}/></button><b style={{textAlign:"center"}}>{line.quantity}</b><button aria-label={`Sumar ${line.name}`} onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}><Plus size={14}/></button></div></div>)}
         <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio" value={customer.name} onChange={(event)=>setCustomer((current)=>({...current,name:event.target.value}))}/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto" value={customer.phone} onChange={(event)=>setCustomer((current)=>({...current,phone:event.target.value}))}/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)" value={customer.notes} onChange={(event)=>setCustomer((current)=>({...current,notes:event.target.value}))}/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Confirmar y guardar pedido"}</button>{message&&<div className="error">{message}</div>}</form>
       </>}
       </>}

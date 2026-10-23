@@ -191,7 +191,15 @@ begin
   loop
     select * into v_product from public.products where id = (v_item->>'product_id')::bigint;
     insert into public.order_items (order_id, product_id, product_name, quantity)
-    values (v_order_id, v_product.id, v_product.name, (v_item->>'quantity')::integer);
+    values (
+      v_order_id,
+      v_product.id,
+      case
+        when v_product.catalog_section = 'tubitos_arabes' then 'Tubito Árabe 35 ML · '
+        else 'Extracto de 60 ML · '
+      end || v_product.name,
+      (v_item->>'quantity')::integer
+    );
   end loop;
 
   return jsonb_build_object('id', v_order_id, 'order_number', v_order_number, 'total_units', v_total);
