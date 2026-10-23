@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CircleCheck, Flame, Minus, Plus, Search, ShoppingBag, SprayCan, X, Zap } from "lucide-react";
+import { ArrowLeft, CircleCheck, Flame, MessageCircle, Minus, Plus, Search, ShoppingBag, SprayCan, X, Zap } from "lucide-react";
 import Image from "next/image";
 import type { CatalogSection, Product } from "@/lib/types";
-import { BUSINESS_WHATSAPP } from "@/lib/config";
+import { ORDER_RECIPIENTS } from "@/lib/config";
 
 type Cart = Record<number, number>;
+type CompletedOrder = { orderNumber: string; whatsappText: string };
 
 export function Catalog({ initialProducts, configured }: { initialProducts: Product[]; configured: boolean }) {
   const [query, setQuery] = useState("");
@@ -17,6 +18,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
   const [zoomedProduct, setZoomedProduct] = useState<Product | null>(null);
   const [customer, setCustomer] = useState({ name: "", phone: "", notes: "" });
 
@@ -55,6 +57,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
 
   function setQuantity(product: Product, value: number) {
     const next = Math.min(product.stock, Math.max(0, Math.floor(value || 0)));
+    if (next > 0) setCompletedOrder(null);
     setCart((current) => {
       const updated = { ...current };
       if (next) updated[product.id] = next; else delete updated[product.id];
@@ -96,8 +99,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       ].join("\n");
       setCart({});
       setCustomer({ name: "", phone: "", notes: "" });
-      setMessage(`Pedido ${result.order_number} guardado correctamente.`);
-      window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+      setCompletedOrder({ orderNumber: result.order_number, whatsappText: text });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "No se pudo crear el pedido.");
     } finally {
@@ -132,11 +134,21 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
     </main>
     <button className="btn cart-fab" onClick={()=>setCartOpen(true)}><ShoppingBag size={19}/> Ver pedido <b>{total}</b></button>
     {cartOpen && <div className="overlay" role="dialog" aria-modal="true" aria-label="Resumen del pedido" onClick={()=>setCartOpen(false)}><aside className="drawer" onClick={(event)=>event.stopPropagation()}>
-      <div className="drawer-head"><div><div className="eyebrow">Solicitud mayorista</div><h2>Tu pedido · {lines.length} {lines.length === 1 ? "modelo" : "modelos"} · {total} {total === 1 ? "unidad" : "unidades"}</h2></div><button className="btn ghost" aria-label="Cerrar" onClick={()=>setCartOpen(false)}><X size={18}/></button></div>
+      <div className="drawer-head"><div><div className="eyebrow">Solicitud mayorista</div><h2>{completedOrder ? `Pedido ${completedOrder.orderNumber}` : `Tu pedido · ${lines.length} ${lines.length === 1 ? "modelo" : "modelos"} · ${total} ${total === 1 ? "unidad" : "unidades"}`}</h2></div><button className="btn ghost" aria-label="Cerrar" onClick={()=>setCartOpen(false)}><X size={18}/></button></div>
+      {completedOrder ? <div className="order-complete">
+        <div className="order-complete-icon"><CircleCheck size={34}/></div>
+        <div><h3>Pedido guardado en Administración</h3><p>Ya recibimos el pedido. Ahora elegí a quién enviarlo por WhatsApp.</p></div>
+        <div className="recipient-actions">
+          {ORDER_RECIPIENTS.map((recipient)=><a className="btn whatsapp-recipient" key={recipient.id} href={`https://wa.me/${recipient.phone}?text=${encodeURIComponent(completedOrder.whatsappText)}`} target="_blank" rel="noreferrer"><MessageCircle size={20}/><span>Enviar a {recipient.name}</span><small>{recipient.displayPhone}</small></a>)}
+        </div>
+        <button className="btn secondary continue-shopping" type="button" onClick={()=>{setCompletedOrder(null);setMessage("");setCartOpen(false);}}><ArrowLeft size={17}/> Volver al catálogo</button>
+        <p className="order-saved-note">Aunque no abras WhatsApp, el pedido ya quedó guardado.</p>
+      </div> : <>
       <button className="btn secondary continue-shopping" type="button" onClick={()=>setCartOpen(false)}><ArrowLeft size={17}/> Seguir pidiendo</button>
       {!lines.length ? <div className="empty">Todavía no agregaste productos.</div> : <>
         {lines.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<Image src={line.photo_url} alt="" width={54} height={62} sizes="54px"/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button aria-label={`Restar ${line.name}`} onClick={()=>setQuantity(line,line.quantity-1)}><Minus size={14}/></button><b style={{textAlign:"center"}}>{line.quantity}</b><button aria-label={`Sumar ${line.name}`} onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}><Plus size={14}/></button></div></div>)}
-        <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio" value={customer.name} onChange={(event)=>setCustomer((current)=>({...current,name:event.target.value}))}/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto" value={customer.phone} onChange={(event)=>setCustomer((current)=>({...current,phone:event.target.value}))}/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)" value={customer.notes} onChange={(event)=>setCustomer((current)=>({...current,notes:event.target.value}))}/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Guardar pedido y abrir WhatsApp"}</button>{message&&<div className={message.startsWith("Pedido")?"success":"error"}>{message}</div>}</form>
+        <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio" value={customer.name} onChange={(event)=>setCustomer((current)=>({...current,name:event.target.value}))}/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto" value={customer.phone} onChange={(event)=>setCustomer((current)=>({...current,phone:event.target.value}))}/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)" value={customer.notes} onChange={(event)=>setCustomer((current)=>({...current,notes:event.target.value}))}/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Confirmar y guardar pedido"}</button>{message&&<div className="error">{message}</div>}</form>
+      </>}
       </>}
     </aside></div>}
     {zoomedProduct?.photo_url && <div className="image-lightbox" role="dialog" aria-modal="true" aria-label={`Imagen ampliada de ${zoomedProduct.name}`} onClick={()=>setZoomedProduct(null)}>

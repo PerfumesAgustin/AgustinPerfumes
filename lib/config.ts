@@ -1,4 +1,7 @@
-export const BUSINESS_WHATSAPP = "5491167463767";
+export const ORDER_RECIPIENTS = [
+  { id: "agustin", name: "Agustín", phone: "5491167463767", displayPhone: "11 6746-3767" },
+  { id: "kathi", name: "Kathi", phone: "5491123730486", displayPhone: "11 2373-0486" },
+] as const;
 export const BUSINESS_NAME = "AYK";
 
 export function hasSupabaseConfig() {
