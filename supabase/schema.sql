@@ -140,6 +140,8 @@ drop policy if exists "admins manage settings" on public.business_settings;
 create policy "admins manage settings" on public.business_settings for all
 using (public.is_admin()) with check (public.is_admin());
 
+create sequence if not exists public.order_number_seq start with 1 increment by 1 minvalue 1;
+
 create or replace function public.create_order(
   p_reseller_name text,
   p_phone text,
@@ -154,6 +156,7 @@ as $$
 declare
   v_order_id uuid := gen_random_uuid();
   v_order_number text;
+  v_order_sequence bigint;
   v_total integer := 0;
   v_item jsonb;
   v_product public.products%rowtype;
@@ -179,7 +182,8 @@ begin
     v_total := v_total + v_quantity;
   end loop;
 
-  v_order_number := 'PS-' || to_char(clock_timestamp(), 'YYYYMMDD') || '-' || upper(substr(replace(v_order_id::text, '-', ''), 1, 6));
+  v_order_sequence := nextval('public.order_number_seq');
+  v_order_number := lpad(v_order_sequence::text, greatest(4, char_length(v_order_sequence::text)), '0');
   insert into public.orders (id, order_number, reseller_name, phone, notes, total_units)
   values (v_order_id, v_order_number, trim(p_reseller_name), trim(p_phone), nullif(trim(p_notes), ''), v_total);
 

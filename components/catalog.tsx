@@ -5,6 +5,7 @@ import { ArrowLeft, CircleCheck, Flame, MessageCircle, Minus, Plus, Search, Shop
 import Image from "next/image";
 import type { CatalogSection, Product } from "@/lib/types";
 import { ORDER_RECIPIENTS } from "@/lib/config";
+import { formatOrderLabel } from "@/lib/order-number";
 
 type Cart = Record<number, number>;
 type CompletedOrder = { orderNumber: string; whatsappText: string };
@@ -87,7 +88,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "No se pudo guardar el pedido.");
       const text = [
-        `PEDIDO MAYORISTA ${result.order_number}`,
+        `PEDIDO MAYORISTA · ${formatOrderLabel(result.order_number)}`,
         `Revendedor: ${payload.reseller_name}`,
         `Teléfono: ${payload.phone}`,
         "",
@@ -134,12 +135,11 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
     </main>
     <button className="btn cart-fab" onClick={()=>setCartOpen(true)}><ShoppingBag size={19}/> Ver pedido <b>{total}</b></button>
     {cartOpen && <div className="overlay" role="dialog" aria-modal="true" aria-label="Resumen del pedido" onClick={()=>setCartOpen(false)}><aside className="drawer" onClick={(event)=>event.stopPropagation()}>
-      <div className="drawer-head"><div><div className="eyebrow">Solicitud mayorista</div><h2>{completedOrder ? `Pedido ${completedOrder.orderNumber}` : `Tu pedido · ${lines.length} ${lines.length === 1 ? "modelo" : "modelos"} · ${total} ${total === 1 ? "unidad" : "unidades"}`}</h2></div><button className="btn ghost" aria-label="Cerrar" onClick={()=>setCartOpen(false)}><X size={18}/></button></div>
+      <div className="drawer-head"><div><div className="eyebrow">{completedOrder ? "Pedido confirmado" : "Solicitud mayorista"}</div><h2 className={completedOrder ? "confirmed-order-number" : ""}>{completedOrder ? formatOrderLabel(completedOrder.orderNumber) : `Tu pedido · ${lines.length} ${lines.length === 1 ? "modelo" : "modelos"} · ${total} ${total === 1 ? "unidad" : "unidades"}`}</h2></div><button className="btn ghost" aria-label="Cerrar" onClick={()=>setCartOpen(false)}><X size={18}/></button></div>
       {completedOrder ? <div className="order-complete">
-        <div className="order-complete-icon"><CircleCheck size={34}/></div>
-        <div><h3>Pedido guardado en Administración</h3><p>Ya recibimos el pedido. Ahora elegí a quién enviarlo por WhatsApp.</p></div>
+        <div className="order-confirmation-card"><div className="order-complete-icon"><CircleCheck size={34}/></div><div><span className="confirmation-kicker">¡Todo listo!</span><h3>Pedido guardado en Administración</h3><p>Ya recibimos el pedido. Ahora elegí a quién enviarlo por WhatsApp.</p></div></div>
         <div className="recipient-actions">
-          {ORDER_RECIPIENTS.map((recipient)=><a className="btn whatsapp-recipient" key={recipient.id} href={`https://wa.me/${recipient.phone}?text=${encodeURIComponent(completedOrder.whatsappText)}`} target="_blank" rel="noreferrer"><MessageCircle size={20}/><span>Enviar a {recipient.name}</span><small>{recipient.displayPhone}</small></a>)}
+          {ORDER_RECIPIENTS.map((recipient)=><a className="btn whatsapp-recipient" key={recipient.id} href={`https://wa.me/${recipient.phone}?text=${encodeURIComponent(completedOrder.whatsappText)}`} target="_blank" rel="noreferrer"><span className="recipient-avatar">{recipient.name.charAt(0)}</span><span className="recipient-copy"><strong>Enviar a {recipient.name}</strong><small>{recipient.displayPhone}</small></span><MessageCircle size={20}/></a>)}
         </div>
         <button className="btn secondary continue-shopping" type="button" onClick={()=>{setCompletedOrder(null);setMessage("");setCartOpen(false);}}><ArrowLeft size={17}/> Volver al catálogo</button>
         <p className="order-saved-note">Aunque no abras WhatsApp, el pedido ya quedó guardado.</p>
