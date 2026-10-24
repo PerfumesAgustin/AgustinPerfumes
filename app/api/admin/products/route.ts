@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/supabase/admin";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(160),
-  gender: z.enum(["Masculino", "Femenino", "Unisex", "Sin clasificar"]),
+  gender: z.enum(["Masculino", "Femenino", "Unisex", "Infantil", "Sin clasificar"]),
   stock: z.number().int().min(0).default(0),
   min_stock: z.number().int().min(0).default(3),
   catalog_section: z.enum(["extractos", "tubitos_arabes"]).default("extractos"),

@@ -1,4 +1,4 @@
-export type Gender = "Masculino" | "Femenino" | "Unisex" | "Sin clasificar";
+export type Gender = "Masculino" | "Femenino" | "Unisex" | "Infantil" | "Sin clasificar";
 export type CatalogSection = "extractos" | "tubitos_arabes";
 
 export type Product = {

@@ -2,7 +2,7 @@
 create extension if not exists pgcrypto;
 
 do $$ begin
-  create type public.product_gender as enum ('Masculino', 'Femenino', 'Unisex', 'Sin clasificar');
+  create type public.product_gender as enum ('Masculino', 'Femenino', 'Unisex', 'Infantil', 'Sin clasificar');
 exception when duplicate_object then null; end $$;
 
 do $$ begin

@@ -126,7 +126,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       </nav>
       <div className="toolbar">
         <label style={{position:"relative"}}><Search size={18} style={{position:"absolute",left:13,top:13,color:"#9d8da8"}}/><input className="field" style={{paddingLeft:42}} value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Buscar perfume..."/></label>
-        <select className="select" value={gender} onChange={(event)=>setGender(event.target.value)}><option value="">Todos los géneros</option><option>Masculino</option><option>Femenino</option><option>Unisex</option><option>Sin clasificar</option></select>
+        <select className="select" value={gender} onChange={(event)=>setGender(event.target.value)}><option value="">Todos los géneros</option><option>Masculino</option><option>Femenino</option><option>Unisex</option><option>Infantil</option><option>Sin clasificar</option></select>
         <select className="select" value={availability} onChange={(event)=>setAvailability(event.target.value)}><option value="">Toda disponibilidad</option><option value="available">Disponibles</option><option value="empty">Agotados</option></select>
       </div>
       <section className="product-grid">
