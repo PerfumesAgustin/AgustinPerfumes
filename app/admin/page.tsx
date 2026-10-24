@@ -22,7 +22,10 @@ export default async function AdminPage() {
     supabase.from("stock_movements").select("*,products(name)").order("created_at", { ascending:false }).limit(200),
   ]);
   if (productsResult.error || ordersResult.error || movementsResult.error) throw new Error("No se pudo cargar el panel administrativo.");
-  const products = (productsResult.data as Product[]).filter((product) => !isDeletedProduct(product.source_name)).map(enrichProduct);
+  const products = (productsResult.data as Product[])
+    .filter((product) => !isDeletedProduct(product.source_name))
+    .map(enrichProduct)
+    .map((product) => product.stock === 0 ? { ...product, is_active: false } : product);
   const orders = (ordersResult.data as Order[]).map((order) => ({
     ...order,
     order_items: order.order_items?.map((item) => ({ ...item, product_name: canonicalProductName(item.product_name) })),

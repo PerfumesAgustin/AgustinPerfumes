@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 async function loadProducts(): Promise<Product[]> {
   if (!hasSupabaseConfig()) return (seed as unknown as Product[]).map((product) => ({ ...product, catalog_section: "extractos" }));
   const supabase = await createClient();
-  const { data, error } = await supabase.from("products").select("id,name,gender,stock,min_stock,photo_url,is_active,catalog_section").eq("is_active", true).order("name");
+  const { data, error } = await supabase.from("products").select("id,name,gender,stock,min_stock,photo_url,is_active,catalog_section").eq("is_active", true).gt("stock", 0).order("name");
   if (error) throw new Error(`No se pudo cargar el catálogo: ${error.message}`);
   return (data as Product[]).map(enrichProduct);
 }

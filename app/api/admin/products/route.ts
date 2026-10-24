@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if ("response" in auth) return auth.response;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
-  const { data, error } = await auth.supabase.from("products").insert({ ...parsed.data, is_active: true, data_status: "revisar" }).select().single();
+  const { data, error } = await auth.supabase.from("products").insert({ ...parsed.data, is_active: parsed.data.stock > 0, data_status: "revisar" }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data, { status: 201 });
 }
