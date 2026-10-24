@@ -90,6 +90,8 @@ a { color: inherit; text-decoration: none; }
 .btn.secondary { background: #2a2035; border: 1px solid #483458; }
 .btn.ghost { background: transparent; border: 1px solid var(--line); }
 .btn.danger { background: #803147; }
+.btn.reject { color:#ffc0cb; background:rgba(128,49,71,.3); border:1px solid rgba(240,124,145,.32); }
+.btn.reopen { color:#e9dcff; background:linear-gradient(145deg,#6940a0,#4d2e70); border:1px solid #8b63bc; }
 .link-button { display:flex; align-items:center; gap:3px; margin-top:3px; padding:0; border:0; background:transparent; color:var(--red); font-size:11px; }
 .cart-fab { position: fixed; right: max(18px, calc((100vw - 1220px)/2)); bottom: 20px; z-index: 35; display: flex; gap: 10px; align-items: center; border: 1px solid #8f68ce; box-shadow: 0 16px 50px rgba(0,0,0,.45); }
 .cart-fab b { background: white; color: #44236e; border-radius: 999px; padding: 3px 8px; }
@@ -160,6 +162,12 @@ a { color: inherit; text-decoration: none; }
 .admin-order-line b { color:#f4dda1; white-space:nowrap; }
 .admin-order-total { display:flex; justify-content:space-between; gap:12px; padding:11px 13px; border-radius:12px; color:#d9c7e6; background:#21182d; }
 .admin-order-total strong { color:white; }
+.order-card { transition:border-color .18s ease,box-shadow .18s ease; }
+.order-card.status-rejected { border-color:rgba(240,124,145,.25); }
+.order-card.status-confirmed { border-color:rgba(97,212,155,.2); }
+.order-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.order-actions .btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+.reopen-hint { margin:10px 0; padding:10px 12px; border:1px solid rgba(166,117,255,.18); border-radius:11px; color:#cdbdd8; background:rgba(123,72,218,.08); font-size:.8rem; }
 
 @media (max-width: 980px) {
   .product-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }

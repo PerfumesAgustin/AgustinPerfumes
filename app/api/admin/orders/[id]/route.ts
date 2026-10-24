@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/supabase/admin";
 
-const schema = z.object({ action: z.enum(["confirm", "reject", "cancel"]) });
+const schema = z.object({ action: z.enum(["confirm", "reject", "cancel", "reopen"]) });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
@@ -12,7 +12,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (!parsed.success) return NextResponse.json({ error: "Acción inválida" }, { status: 400 });
   const result = parsed.data.action === "confirm"
     ? await auth.supabase.rpc("confirm_order", { p_order_id: id })
-    : await auth.supabase.rpc("set_order_status", { p_order_id: id, p_status: parsed.data.action === "reject" ? "rejected" : "cancelled" });
+    : parsed.data.action === "reopen"
+      ? await auth.supabase.rpc("reopen_order", { p_order_id: id })
+      : await auth.supabase.rpc("set_order_status", { p_order_id: id, p_status: parsed.data.action === "reject" ? "rejected" : "cancelled" });
   if (result.error) return NextResponse.json({ error: result.error.message }, { status: 409 });
   return NextResponse.json({ ok: true });
 }
