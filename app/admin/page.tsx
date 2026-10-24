@@ -4,6 +4,7 @@ import { hasSupabaseConfig } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 import type { Order, Product, StockMovement } from "@/lib/types";
 import { canonicalProductName, enrichProduct } from "@/lib/catalog-utils";
+import { isDeletedProduct } from "@/lib/product-deletion";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function AdminPage() {
     supabase.from("stock_movements").select("*,products(name)").order("created_at", { ascending:false }).limit(200),
   ]);
   if (productsResult.error || ordersResult.error || movementsResult.error) throw new Error("No se pudo cargar el panel administrativo.");
-  const products = (productsResult.data as Product[]).map(enrichProduct);
+  const products = (productsResult.data as Product[]).filter((product) => !isDeletedProduct(product.source_name)).map(enrichProduct);
   const orders = (ordersResult.data as Order[]).map((order) => ({
     ...order,
     order_items: order.order_items?.map((item) => ({ ...item, product_name: canonicalProductName(item.product_name) })),

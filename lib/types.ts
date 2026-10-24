@@ -4,6 +4,7 @@ export type CatalogSection = "extractos" | "tubitos_arabes";
 export type Product = {
   id: number;
   name: string;
+  source_name?: string | null;
   gender: Gender;
   stock: number;
   min_stock: number;
