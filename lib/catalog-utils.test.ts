@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeInventorySummary, canonicalProductName, enrichProduct, verifiedInspiration } from "./catalog-utils";
+import { activeInventorySummary, canonicalProductName, enrichProduct, inventoryStockSummary, verifiedInspiration } from "./catalog-utils";
 import type { Product } from "./types";
 
 function product(overrides: Partial<Product>): Product {
@@ -47,6 +47,18 @@ describe("activeInventorySummary", () => {
       product({ id: 3, stock: 8, is_active: false }),
     ]);
     expect(summary).toEqual({ products: 2, units: 12, lowStock: 1 });
+  });
+});
+
+describe("inventoryStockSummary", () => {
+  it("suma las unidades por sección y cuenta los productos con poco stock", () => {
+    const summary = inventoryStockSummary([
+      product({ id: 1, stock: 10, catalog_section: "extractos" }),
+      product({ id: 2, stock: 2, catalog_section: "extractos" }),
+      product({ id: 3, stock: 8, catalog_section: "tubitos_arabes", is_active: false }),
+      product({ id: 4, stock: 0, catalog_section: "tubitos_arabes" }),
+    ]);
+    expect(summary).toEqual({ extractos: 12, tubitos: 8, lowStock: 1 });
   });
 });
 

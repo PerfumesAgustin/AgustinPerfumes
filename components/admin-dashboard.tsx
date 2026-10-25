@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SprayCan, CheckCircle2, DatabaseBackup, Download, Eye, EyeOff, ImageOff, LogOut, PackagePlus, RotateCcw, Trash2, Upload, XCircle } from "lucide-react";
+import { AlertTriangle, SprayCan, CheckCircle2, DatabaseBackup, Download, Eye, EyeOff, ImageOff, LogOut, PackagePlus, RotateCcw, Trash2, Upload, XCircle } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { activeInventorySummary } from "@/lib/catalog-utils";
+import { inventoryStockSummary } from "@/lib/catalog-utils";
 import type { CatalogSection, Gender, Order, OrderItem, Product, StockMovement } from "@/lib/types";
 import { formatOrderLabel } from "@/lib/order-number";
 import { cleanProductOrderName, groupOrderItems, inferProductSection } from "@/lib/product-order-label";
@@ -19,13 +19,14 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
   const [visibility, setVisibility] = useState<"active" | "archived" | "all">("all");
   const [catalogSection, setCatalogSection] = useState<"all" | CatalogSection>("all");
   const [photoFilter, setPhotoFilter] = useState<"all" | "with_photo" | "without_photo">("all");
+  const [stockFilter, setStockFilter] = useState<"all" | "low">("all");
   const [busy, setBusy] = useState<string>("");
   const [message, setMessage] = useState("");
-  const photoFilterBase = useMemo(()=>products.filter((product)=>(visibility === "all" || (visibility === "active" ? product.is_active : !product.is_active)) && (catalogSection === "all" || product.catalog_section === catalogSection)),[products,visibility,catalogSection]);
+  const photoFilterBase = useMemo(()=>products.filter((product)=>(visibility === "all" || (visibility === "active" ? product.is_active : !product.is_active)) && (catalogSection === "all" || product.catalog_section === catalogSection) && (stockFilter === "all" || (product.stock > 0 && product.stock <= product.min_stock))),[products,visibility,catalogSection,stockFilter]);
   const withPhotoCount = useMemo(()=>photoFilterBase.filter((product)=>Boolean(product.photo_url)).length,[photoFilterBase]);
   const withoutPhotoCount = photoFilterBase.length-withPhotoCount;
   const visible = useMemo(()=>photoFilterBase.filter((product)=>product.name.toLocaleLowerCase("es").includes(query.toLocaleLowerCase("es")) && (photoFilter === "all" || (photoFilter === "with_photo" ? Boolean(product.photo_url) : !product.photo_url))),[photoFilterBase,query,photoFilter]);
-  const summary = useMemo(()=>activeInventorySummary(products),[products]);
+  const summary = useMemo(()=>inventoryStockSummary(products),[products]);
   const productSections = useMemo(()=>new Map(products.map((product)=>[product.id,product.catalog_section])),[products]);
   const pending = orders.filter((order)=>order.status==="pending").length;
 
@@ -80,10 +81,21 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
     catch(error){setMessage(error instanceof Error?error.message:"Error");}
   }
   async function logout(){await createClient().auth.signOut();window.location.href="/admin/login";}
+  function toggleLowStock() {
+    const showLowStock = stockFilter !== "low";
+    setTab("inventory");
+    setStockFilter(showLowStock ? "low" : "all");
+    if (showLowStock) {
+      setQuery("");
+      setVisibility("all");
+      setCatalogSection("all");
+      setPhotoFilter("all");
+    }
+  }
 
   return <main className="admin-shell">
     <div className="admin-head"><div className="brand"><Image className="brand-logo" src="/ayk-logo-only.webp" alt="AYK" width={320} height={320} sizes="62px" priority/><div><div className="brand-name">Extractos de fábrica</div><div style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{email}</div></div></div><div style={{display:"flex",gap:8}}><a className="btn ghost" href="/">Ver catálogo</a><button className="btn secondary" onClick={logout}><LogOut size={16}/></button></div></div>
-    <div className="stats-grid"><Stat value={summary.products} label="productos activos"/><Stat value={summary.units} label="unidades activas"/><Stat value={summary.lowStock} label="alertas de stock bajo"/><Stat value={pending} label="pedidos pendientes"/></div>
+    <div className="stats-grid"><Stat value={summary.extractos} label="unidades de Extractos 60 ML"/><Stat value={summary.tubitos} label="unidades de Tubitos Árabes 35 ML"/><button className={`stat-card stat-card-action ${stockFilter==="low"?"active":""}`} onClick={toggleLowStock} aria-pressed={stockFilter==="low"}><AlertTriangle size={21}/><strong>{summary.lowStock}</strong><span>{stockFilter==="low"?"Mostrar todo el inventario":"Ver productos con poco stock"}</span></button><Stat value={pending} label="pedidos pendientes"/></div>
     {message&&<div className="notice" style={{marginBottom:12}}>{message}</div>}
     <div className="tabs"><button className={`btn ${tab!=="inventory"?"secondary":""}`} onClick={()=>setTab("inventory")}>Inventario</button><button className={`btn ${tab!=="orders"?"secondary":""}`} onClick={()=>setTab("orders")}>Pedidos ({pending})</button><button className={`btn ${tab!=="history"?"secondary":""}`} onClick={()=>setTab("history")}>Movimientos</button></div>
     {tab==="inventory"&&<>

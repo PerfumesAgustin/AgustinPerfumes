@@ -128,3 +128,15 @@ export function activeInventorySummary(products: Product[]) {
     lowStock: active.filter((product) => product.stock > 0 && product.stock <= product.min_stock).length,
   };
 }
+
+export function inventoryStockSummary(products: Product[]) {
+  return {
+    extractos: products
+      .filter((product) => product.catalog_section === "extractos")
+      .reduce((sum, product) => sum + product.stock, 0),
+    tubitos: products
+      .filter((product) => product.catalog_section === "tubitos_arabes")
+      .reduce((sum, product) => sum + product.stock, 0),
+    lowStock: products.filter((product) => product.stock > 0 && product.stock <= product.min_stock).length,
+  };
+}
