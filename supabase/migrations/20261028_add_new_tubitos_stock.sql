@@ -31,7 +31,13 @@ update requested_tubitos_20261028 requested
 set stock_before = product.stock
 from public.products product
 where product.catalog_section = 'tubitos_arabes'
-  and lower(trim(product.name)) = lower(trim(requested.name));
+  and lower(trim(product.name)) = lower(trim(requested.name))
+  and not exists (
+    select 1
+    from public.stock_movements movement
+    where movement.product_id = product.id
+      and movement.reason = 'Ingreso de Tubitos Árabes y fotos del 28/10/2026'
+  );
 
 update public.products product
 set
@@ -43,7 +49,13 @@ set
   updated_at = now()
 from requested_tubitos_20261028 requested
 where product.catalog_section = 'tubitos_arabes'
-  and lower(trim(product.name)) = lower(trim(requested.name));
+  and lower(trim(product.name)) = lower(trim(requested.name))
+  and not exists (
+    select 1
+    from public.stock_movements movement
+    where movement.product_id = product.id
+      and movement.reason = 'Ingreso de Tubitos Árabes y fotos del 28/10/2026'
+  );
 
 insert into public.products
   (name, gender, stock, min_stock, photo_url, catalog_section, is_active, data_status)
@@ -72,12 +84,18 @@ select
   requested.stock,
   requested.stock_before,
   requested.stock_before + requested.stock,
-  'Carga de Tubitos Árabes y fotos del 28/10/2026',
+  'Ingreso de Tubitos Árabes y fotos del 28/10/2026',
   '0a41ee90-4f27-419c-9763-6f0bf1925ce9'::uuid
 from requested_tubitos_20261028 requested
 join public.products product
   on product.catalog_section = 'tubitos_arabes'
  and lower(trim(product.name)) = lower(trim(requested.name))
-where requested.stock > 0;
+where requested.stock > 0
+  and not exists (
+    select 1
+    from public.stock_movements movement
+    where movement.product_id = product.id
+      and movement.reason = 'Ingreso de Tubitos Árabes y fotos del 28/10/2026'
+  );
 
 commit;
