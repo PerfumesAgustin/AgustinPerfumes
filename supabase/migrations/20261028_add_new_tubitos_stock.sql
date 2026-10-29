@@ -36,7 +36,7 @@ where product.catalog_section = 'tubitos_arabes'
 update public.products product
 set
   gender = requested.gender,
-  stock = requested.stock,
+  stock = product.stock + requested.stock,
   photo_url = requested.photo_url,
   is_active = true,
   data_status = 'foto_validada',
@@ -68,16 +68,16 @@ insert into public.stock_movements
   (product_id, movement_type, quantity, stock_before, stock_after, reason, created_by)
 select
   product.id,
-  'set',
-  requested.stock - requested.stock_before,
-  requested.stock_before,
+  'manual_add',
   requested.stock,
+  requested.stock_before,
+  requested.stock_before + requested.stock,
   'Carga de Tubitos Árabes y fotos del 28/10/2026',
   '0a41ee90-4f27-419c-9763-6f0bf1925ce9'::uuid
 from requested_tubitos_20261028 requested
 join public.products product
   on product.catalog_section = 'tubitos_arabes'
  and lower(trim(product.name)) = lower(trim(requested.name))
-where requested.stock <> requested.stock_before;
+where requested.stock > 0;
 
 commit;
