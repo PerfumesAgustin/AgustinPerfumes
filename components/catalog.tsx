@@ -101,7 +101,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
         ]),
         `TOTAL GENERAL: ${total} unidades`,
         `Observaciones: ${payload.notes || "Sin observaciones"}`,
-        "Pedido sujeto a confirmación de stock.",
+        "Stock reservado al guardar el pedido. Si se cancela, las unidades vuelven al catálogo.",
       ].join("\n");
       setCart({});
       setCustomer({ name: "", phone: "", notes: "" });
@@ -147,7 +147,7 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
           {ORDER_RECIPIENTS.map((recipient)=><a className="btn whatsapp-recipient" key={recipient.id} href={`https://wa.me/${recipient.phone}?text=${encodeURIComponent(completedOrder.whatsappText)}`} target="_blank" rel="noreferrer"><span className="recipient-avatar">{recipient.name.charAt(0)}</span><span className="recipient-copy"><strong>Enviar a {recipient.name}</strong><small>{recipient.displayPhone}</small></span><MessageCircle size={20}/></a>)}
         </div>
         <button className="btn secondary continue-shopping" type="button" onClick={()=>{setCompletedOrder(null);setMessage("");setCartOpen(false);}}><ArrowLeft size={17}/> Volver al catálogo</button>
-        <p className="order-saved-note">Aunque no abras WhatsApp, el pedido ya quedó guardado.</p>
+        <p className="order-saved-note">Aunque no abras WhatsApp, el pedido ya quedó guardado y las unidades quedaron reservadas.</p>
       </div> : <>
       <button className="btn secondary continue-shopping" type="button" onClick={()=>setCartOpen(false)}><ArrowLeft size={17}/> Seguir pidiendo</button>
       {!lines.length ? <div className="empty">Todavía no agregaste productos.</div> : <>

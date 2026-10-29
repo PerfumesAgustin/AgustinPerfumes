@@ -11,7 +11,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const { id } = await context.params;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Acción inválida" }, { status: 400 });
-  const shouldSyncStock = parsed.data.action === "confirm" || parsed.data.action === "cancel";
+  // Cualquiera de estas acciones puede reservar o liberar stock. Confirmar solo
+  // mueve stock en pedidos antiguos que todavía no tenían reserva aplicada.
+  const shouldSyncStock = true;
   const { data: items, error: itemsError } = shouldSyncStock
     ? await auth.supabase.from("order_items").select("product_id").eq("order_id", id)
     : { data: [], error: null };

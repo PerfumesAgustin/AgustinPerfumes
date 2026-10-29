@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, SprayCan, CheckCircle2, DatabaseBackup, Download, Eye, EyeOff, ImageOff, LogOut, PackagePlus, RotateCcw, Trash2, Upload, XCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, Bell, BellRing, SprayCan, CheckCircle2, DatabaseBackup, Download, Eye, EyeOff, ImageOff, LogOut, PackagePlus, RotateCcw, Trash2, Upload, XCircle } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { inventoryStockSummary } from "@/lib/catalog-utils";
@@ -22,6 +22,7 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
   const [stockFilter, setStockFilter] = useState<"all" | "low">("all");
   const [busy, setBusy] = useState<string>("");
   const [message, setMessage] = useState("");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const photoFilterBase = useMemo(()=>products.filter((product)=>(visibility === "all" || (visibility === "active" ? product.is_active : !product.is_active)) && (catalogSection === "all" || product.catalog_section === catalogSection) && (stockFilter === "all" || (product.stock > 0 && product.stock <= product.min_stock))),[products,visibility,catalogSection,stockFilter]);
   const withPhotoCount = useMemo(()=>photoFilterBase.filter((product)=>Boolean(product.photo_url)).length,[photoFilterBase]);
   const withoutPhotoCount = photoFilterBase.length-withPhotoCount;
@@ -29,6 +30,44 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
   const summary = useMemo(()=>inventoryStockSummary(products),[products]);
   const productSections = useMemo(()=>new Map(products.map((product)=>[product.id,product.catalog_section])),[products]);
   const pending = orders.filter((order)=>order.status==="pending").length;
+
+  useEffect(() => {
+    setNotificationsEnabled("Notification" in window && Notification.permission === "granted");
+    const supabase = createClient();
+    const channel = supabase
+      .channel("admin-new-orders")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, async (payload) => {
+        const orderId = String((payload.new as { id?: unknown }).id ?? "");
+        if (!orderId) return;
+        const { data } = await supabase
+          .from("orders")
+          .select("*,order_items(product_id,product_name,quantity)")
+          .eq("id", orderId)
+          .single();
+        if (!data) return;
+
+        const incoming = data as Order;
+        setOrders((current) => current.some((order) => order.id === incoming.id) ? current : [incoming, ...current]);
+        const quantities = new Map((incoming.order_items ?? []).map((item) => [item.product_id, item.quantity]));
+        setProducts((current) => current.map((product) => {
+          const reserved = quantities.get(product.id) ?? 0;
+          if (!reserved) return product;
+          const stock = Math.max(0, product.stock - reserved);
+          return { ...product, stock, is_active: stock === 0 ? false : product.is_active };
+        }));
+        setMessage(`🔔 Nuevo ${formatOrderLabel(incoming.order_number)} de ${incoming.reseller_name}. El stock ya quedó reservado.`);
+        document.title = `🔔 ${formatOrderLabel(incoming.order_number)} · AYK`;
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(`Nuevo ${formatOrderLabel(incoming.order_number)}`, {
+            body: `${incoming.reseller_name} pidió ${incoming.total_units} ${incoming.total_units === 1 ? "unidad" : "unidades"}.`,
+            icon: "/ayk-logo-only.webp",
+          });
+        }
+      })
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
 
   async function request(url:string, options:RequestInit) {
     setMessage("");
@@ -81,6 +120,18 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
     catch(error){setMessage(error instanceof Error?error.message:"Error");}
   }
   async function logout(){await createClient().auth.signOut();window.location.href="/admin/login";}
+  async function enableOrderNotifications() {
+    if (!("Notification" in window)) {
+      setMessage("Este navegador no admite notificaciones.");
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    const enabled = permission === "granted";
+    setNotificationsEnabled(enabled);
+    setMessage(enabled
+      ? "Avisos activados. Te notificaremos cuando llegue un pedido mientras Administración esté abierta."
+      : "No se habilitaron los avisos. Podés cambiar el permiso desde la configuración del navegador.");
+  }
   function toggleLowStock() {
     const showLowStock = stockFilter !== "low";
     setTab("inventory");
@@ -94,7 +145,7 @@ export function AdminDashboard({ products: initialProducts, orders: initialOrder
   }
 
   return <main className="admin-shell">
-    <div className="admin-head"><div className="brand"><Image className="brand-logo" src="/ayk-logo-only.webp" alt="AYK" width={320} height={320} sizes="62px" priority/><div><div className="brand-name">Extractos de fábrica</div><div style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{email}</div></div></div><div style={{display:"flex",gap:8}}><a className="btn ghost" href="/">Ver catálogo</a><button className="btn secondary" onClick={logout}><LogOut size={16}/></button></div></div>
+    <div className="admin-head"><div className="brand"><Image className="brand-logo" src="/ayk-logo-only.webp" alt="AYK" width={320} height={320} sizes="62px" priority/><div><div className="brand-name">Extractos de fábrica</div><div style={{fontSize:11,color:"var(--muted)",fontWeight:500}}>{email}</div></div></div><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className={`btn ${notificationsEnabled?"":"secondary"}`} onClick={enableOrderNotifications}>{notificationsEnabled?<BellRing size={16}/>:<Bell size={16}/>} {notificationsEnabled?"Avisos activos":"Activar avisos"}</button><a className="btn ghost" href="/">Ver catálogo</a><button className="btn secondary" onClick={logout}><LogOut size={16}/></button></div></div>
     <div className="stats-grid"><Stat value={summary.extractos} label="unidades de Extractos 60 ML"/><Stat value={summary.tubitos} label="unidades de Tubitos Árabes 35 ML"/><button className={`stat-card stat-card-action ${stockFilter==="low"?"active":""}`} onClick={toggleLowStock} aria-pressed={stockFilter==="low"}><AlertTriangle size={21}/><strong>{summary.lowStock}</strong><span>{stockFilter==="low"?"Mostrar todo el inventario":"Ver productos con poco stock"}</span></button><Stat value={pending} label="pedidos pendientes"/></div>
     {message&&<div className="notice" style={{marginBottom:12}}>{message}</div>}
     <div className="tabs"><button className={`btn ${tab!=="inventory"?"secondary":""}`} onClick={()=>setTab("inventory")}>Inventario</button><button className={`btn ${tab!=="orders"?"secondary":""}`} onClick={()=>setTab("orders")}>Pedidos ({pending})</button><button className={`btn ${tab!=="history"?"secondary":""}`} onClick={()=>setTab("history")}>Movimientos</button></div>
