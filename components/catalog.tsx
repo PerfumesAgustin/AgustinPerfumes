@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CircleCheck, Flame, MessageCircle, Minus, Plus, Search, ShoppingBag, SprayCan, X, Zap } from "lucide-react";
+import { ArrowLeft, CircleCheck, Flame, MessageCircle, Minus, Plus, Search, ShoppingBag, SprayCan, UserRound, X, Zap } from "lucide-react";
 import Image from "next/image";
 import type { CatalogSection, Product } from "@/lib/types";
 import { ORDER_RECIPIENTS } from "@/lib/config";
@@ -152,7 +152,17 @@ export function Catalog({ initialProducts, configured }: { initialProducts: Prod
       <button className="btn secondary continue-shopping" type="button" onClick={()=>setCartOpen(false)}><ArrowLeft size={17}/> Seguir pidiendo</button>
       {!lines.length ? <div className="empty">Todavía no agregaste productos.</div> : <>
         {orderGroups.map((group)=><section className="cart-order-group" key={group.section}><div className="order-group-head"><strong>{group.label}</strong><span>{group.total} {group.total === 1 ? "unidad" : "unidades"}</span></div>{group.items.map((line)=><div className="cart-line" key={line.id}>{line.photo_url?<Image src={line.photo_url} alt="" width={54} height={62} sizes="54px"/>:<div className="thumb placeholder"><SprayCan size={20}/></div>}<div><span className="order-item-kind">{getProductKindLabel(line.catalog_section)}</span><strong>{line.name}</strong><div className="meta">{line.stock} disponibles</div></div><div className="qty" style={{gridTemplateColumns:"34px 28px 34px"}}><button aria-label={`Restar ${line.name}`} onClick={()=>setQuantity(line,line.quantity-1)}><Minus size={14}/></button><b style={{textAlign:"center"}}>{line.quantity}</b><button aria-label={`Sumar ${line.name}`} onClick={()=>setQuantity(line,line.quantity+1)} disabled={line.quantity>=line.stock}><Plus size={14}/></button></div></div>)}</section>)}
-        <form className="checkout" onSubmit={submitOrder}><h3>Datos del revendedor</h3><input className="field" name="name" required minLength={2} placeholder="Nombre o comercio" value={customer.name} onChange={(event)=>setCustomer((current)=>({...current,name:event.target.value}))}/><input className="field" name="phone" required minLength={6} placeholder="Teléfono de contacto" value={customer.phone} onChange={(event)=>setCustomer((current)=>({...current,phone:event.target.value}))}/><textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Observaciones (opcional)" value={customer.notes} onChange={(event)=>setCustomer((current)=>({...current,notes:event.target.value}))}/><button className="btn" disabled={submitting||!configured}>{submitting?"Guardando...":"Confirmar y guardar pedido"}</button>{message&&<div className="error">{message}</div>}</form>
+        <form className="checkout" onSubmit={submitOrder}>
+          <div className="checkout-heading">
+            <span className="checkout-icon"><UserRound size={20}/></span>
+            <div><h3>Tus datos</h3><p>Completalos para identificar tu pedido.</p></div>
+          </div>
+          <input className="field" name="name" required minLength={2} autoComplete="name" placeholder="Nombre o nombre del comercio" aria-label="Nombre o nombre del comercio" value={customer.name} onChange={(event)=>setCustomer((current)=>({...current,name:event.target.value}))}/>
+          <input className="field" name="phone" type="tel" inputMode="tel" required minLength={6} autoComplete="tel" placeholder="Número de WhatsApp" aria-label="Número de WhatsApp" value={customer.phone} onChange={(event)=>setCustomer((current)=>({...current,phone:event.target.value}))}/>
+          <textarea className="textarea" name="notes" rows={3} maxLength={1000} placeholder="Aclaraciones del pedido (opcional)" aria-label="Aclaraciones del pedido" value={customer.notes} onChange={(event)=>setCustomer((current)=>({...current,notes:event.target.value}))}/>
+          <button className="btn checkout-submit" disabled={submitting||!configured}>{submitting?"Guardando...":"Continuar con el pedido"}</button>
+          {message&&<div className="error">{message}</div>}
+        </form>
       </>}
       </>}
     </aside></div>}
